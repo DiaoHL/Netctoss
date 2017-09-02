@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title></title>
+        <link type="text/css" rel="stylesheet" media="all" href="../styles/global.css" />
+        <link type="text/css" rel="stylesheet" media="all" href="../styles/global_color.css" />
+        <script language="javascript" type="text/javascript">
+            //保存结果的提示
+            function showResult(result) {
+                if (result.msg == "error"){
+                    showResultDiv(true);
+                    window.setTimeout("showResultDiv(false);", 3000);
+                }else{
+                    addCost();
+                }
+            }
+            function showResultDiv(flag) {
+                var divResult = document.getElementById("save_result_info");
+                if (flag)
+                    divResult.style.display = "block";
+                else
+                    divResult.style.display = "none";
+            }
+
+            //切换资费类型
+            function feeTypeChange(type) {
+                var inputArray = document.getElementById("main").getElementsByTagName("input");
+                if (type == 1) {
+                    inputArray[4].readOnly = true;
+                    inputArray[4].value = "";
+                    inputArray[4].className += " readonly";
+                    inputArray[5].readOnly = false;
+                    inputArray[5].className = "width100";
+                    inputArray[6].readOnly = true;
+                    inputArray[6].className += " readonly";
+                    inputArray[6].value = "";
+                }
+                else if (type == 2) {
+                    inputArray[4].readOnly = false;
+                    inputArray[4].className = "width100";
+                    inputArray[5].readOnly = false;
+                    inputArray[5].className = "width100";
+                    inputArray[6].readOnly = false;
+                    inputArray[6].className = "width100";
+                }
+                else if (type == 3) {
+                    inputArray[4].readOnly = true;
+                    inputArray[4].value = "";
+                    inputArray[4].className += " readonly";
+                    inputArray[5].readOnly = true;
+                    inputArray[5].value = "";
+                    inputArray[5].className += " readonly";
+                    inputArray[6].readOnly = false;
+                    inputArray[6].className = "width100";
+                }
+            }
+        </script>
+        <script type="text/javascript" src="../js/jquery-3.2.1.js"></script>
+        <script type="text/javascript">
+            // 检查资费名是否重复
+            function checkName() {
+                var name = $("#name").val();
+                validateName(name);
+                if ($("#patrnName").attr("class").indexOf(" error_msg") >=0){
+                    return;
+                }
+                $.ajax({
+                    url:"/cost/checkCostName",
+//                    type:"post",
+//                    dataType:"text",
+//                    contentType:"application/text",
+                    data:{"name":name},
+                    success:function (result) {
+                        console.log(result)
+                        showResult(result)
+                    }
+                })
+            }
+            // 添加资费
+            function addCost() {
+                var name = $("#name").val();
+                // name的验证方法
+                validateName(name);
+                var baseDuration = $("#baseDuration").val();
+                // 基本时长
+                validateBaseDuration(baseDuration);
+                var baseCost = $("#baseCost").val();
+                // 基本费用
+                validateBaseCost(baseCost);
+                var unitCost = $("#unitCost").val();
+                // 单元费用
+                validateUnitCost(unitCost);
+                var descr = $("#descr").val();
+                // 描述
+                validateDescr(descr);
+                var costType = $("input[name='radFeeType']:checked").val();
+                if ($("#patrnName").attr("class").indexOf(" error_msg") >=0 |
+                    $("#patrnBaseDuration").attr("class").indexOf(" error_msg") >=0 |
+                    $("#patrnBaseCost").attr("class").indexOf(" error_msg") >=0 |
+                    $("#patrnUnitCost").attr("class").indexOf(" error_msg") >=0 |
+                    $("#patrnDescr").attr("class").indexOf(" error_msg") >=0
+                ){
+                    return;
+                }
+                $.ajax({
+                    url:"/cost/addCost",
+                    data:{
+                        "name":name,
+                        "baseDuration":baseDuration,
+                        "baseCost":baseCost,
+                        "unitCost":unitCost,
+                        "descr":descr,
+                        "costType":costType
+                    },
+                    success:function (result) {
+                        if (result.msg == "success"){
+                            location.href = "/cost/fee_listPage";
+                        }
+                        if (result.msg == "error"){
+                            location.href = "/error";
+                        }
+                    }
+                })
+
+            }
+
+            // 验证方法
+            function validateName(input) {
+                var patrnName =/^[.\u4E00-\u9FA5\w\d]{2,50}$/;
+
+                if (!patrnName.exec(input)){
+                    $("#patrnName").addClass(" error_msg");
+                    return;
+                }else {
+                    $("#patrnName").removeClass(" error_msg");
+                }
+            }
+            function validateBaseDuration(input) {
+                var patrnBaseDuration =/^([1-9]|[1-9][0-9]|[1-5][0-9][0-9]|600)$/;
+                if (!patrnBaseDuration.exec(input)){
+                    $("#patrnBaseDuration").addClass(" error_msg");
+                    return;
+                }else {
+                    $("#patrnBaseDuration").removeClass(" error_msg");
+                }
+            }
+            function validateBaseCost(input) {
+                var patrnBaseCost =/^\d{1,5}(\.\d{1,2})?$/;
+                if (!patrnBaseCost.exec(input)){
+                    $("#patrnBaseCost").addClass(" error_msg");
+                    return;
+                }else {
+                    $("#patrnBaseCost").removeClass(" error_msg");
+                }
+            }
+            function validateUnitCost(input) {
+                var patrnUnitCost =/^\d{1,5}(\.\d{1,2})?$/;
+                if (!patrnUnitCost.exec(input)){
+                    $("#patrnUnitCost").addClass(" error_msg");
+                    return;
+                }else {
+                    $("#patrnUnitCost").removeClass(" error_msg");
+                }
+            }
+            function validateDescr(input) {
+                var patrnDescr =/^[.\u4E00-\u9FA5\w\d]{0,100}$/;
+
+                if (!patrnDescr.exec(input)){
+                    $("#patrnDescr").addClass(" error_msg");
+                    return;
+                }else {
+                    $("#patrnDescr").removeClass(" error_msg");
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <!--Logo区域开始-->
+        <div id="header">
+            <img src="../images/logo.png" alt="logo" class="left"/>
+            <a href="#">[退出]</a>            
+        </div>
+        <!--Logo区域结束-->
+        <!--导航区域开始-->
+        <div id="navi">
+            <ul id="menu">
+                <li><a href="../index.html" class="index_off"></a></li>
+                <li><a href="../role/role_list.html" class="role_off"></a></li>
+                <li><a href="../admin/admin_list.html" class="admin_off"></a></li>
+                <li><a href="/cost/fee_listPage" class="fee_on"></a></li>
+                <li><a href="../account/account_list.html" class="account_off"></a></li>
+                <li><a href="../service/service_list.html" class="service_off"></a></li>
+                <li><a href="../bill/bill_list.html" class="bill_off"></a></li>
+                <li><a href="../report/report_list.html" class="report_off"></a></li>
+                <li><a href="../user/user_info.html" class="information_off"></a></li>
+                <li><a href="../user/user_modi_pwd.html" class="password_off"></a></li>
+            </ul>
+        </div>
+        <!--导航区域结束-->
+        <!--主要区域开始-->
+        <div id="main">            
+            <div id="save_result_info" class="save_fail">保存失败，资费名称重复！</div>
+            <form action="" method="" class="main_form">
+                <div class="text_info clearfix"><span>资费名称：</span></div>
+                <div class="input_info">
+                    <input type="text" id="name" class="width300" value=""/>
+                    <span class="required">*</span>
+                    <div id="patrnName" class="validate_msg_short">50长度的字母、数字、汉字和下划线的组合</div>
+                </div>
+                <div class="text_info clearfix"><span>资费类型：</span></div>
+                <div class="input_info fee_type">
+                    <input type="radio" name="radFeeType" id="monthly" value="1" onclick="feeTypeChange(1);" />
+                    <label for="monthly">包月</label>
+                    <input type="radio" name="radFeeType" checked="checked" value="2" id="package" onclick="feeTypeChange(2);" />
+                    <label for="package">套餐</label>
+                    <input type="radio" name="radFeeType" id="timeBased" value="3" onclick="feeTypeChange(3);" />
+                    <label for="timeBased">计时</label>
+                </div>
+                <div class="text_info clearfix"><span>基本时长：</span></div>
+                <div class="input_info">
+                    <input type="text" id="baseDuration" value="" class="width100" />
+                    <span class="info">小时</span>
+                    <span class="required">*</span>
+                    <div id="patrnBaseDuration" class="validate_msg_long">1-600之间的整数</div>
+                </div>
+                <div class="text_info clearfix"><span>基本费用：</span></div>
+                <div class="input_info">
+                    <input type="text" id="baseCost" value="" class="width100" />
+                    <span class="info">元</span>
+                    <span class="required">*</span>
+                    <div id="patrnBaseCost" class="validate_msg_long">0-99999.99之间的数值</div>
+                </div>
+                <div class="text_info clearfix"><span>单位费用：</span></div>
+                <div class="input_info">
+                    <input type="text" id="unitCost" value="" class="width100" />
+                    <span class="info">元/小时</span>
+                    <span class="required">*</span>
+                    <div id="patrnUnitCost" class="validate_msg_long">0-99999.99之间的数值</div>
+                </div>
+                <div class="text_info clearfix"><span>资费说明：</span></div>
+                <div class="input_info_high">
+                    <textarea class="width300 height70" id="descr"></textarea>
+                    <div id="patrnDescr" class="validate_msg_short">100长度的字母、数字、汉字和下划线的组合</div>
+                </div>                    
+                <div class="button_info clearfix">
+                    <input type="button" value="保存" class="btn_save"  onclick="checkName();" />
+                    <input type="button" value="取消" class="btn_save" />
+                </div>
+            </form>  
+        </div>
+        <!--主要区域结束-->
+        <div id="footer">
+            <span>[源自北美的技术，最优秀的师资，最真实的企业环境，最适用的实战项目]</span>
+            <br />
+           <span>版权所有(C)云科技有限公司 </span>
+        </div>
+    </body>
+</html>

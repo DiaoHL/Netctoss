@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.lanou.mapper.CostMapper">
+
+    <resultMap id="BaseCost" type="Cost">
+        <id column="cost_id" property="costId"/>
+        <!--资费名称-->
+        <result column="name" property="name"/>
+        <!--基本时长-->
+        <result column="base_duration" property="baseDuration"/>
+        <!--基本费用-->
+        <result column="base_cost" property="baseCost"/>
+        <!--单位费用-->
+        <result column="unit_cost" property="unitCost"/>
+        <!--状态0未启用,1启用-->
+        <result column="status" property="status"/>
+        <!--资费说明-->
+        <result column="descr" property="descr"/>
+        <!--常见时间-->
+        <result column="creatime" property="creatime"/>
+        <!--开始时间-->
+        <result column="startime" property="startime"/>
+        <!--资费类型-->
+        <result column="cost_type" property="costType"/>
+    </resultMap>
+    <sql id="baseSql">
+        cost_id,name,base_duration,base_cost,unit_cost,status,creatime,startime
+    </sql>
+    <select id="findAllCost" resultMap="BaseCost">
+        SELECT
+        <include refid="baseSql"/>
+        FROM cost
+    </select>
+    <update id="updateCost" parameterType="Cost">
+        UPDATE cost SET
+        name=#{name},
+        base_duration=#{baseDuration},
+        base_cost=#{baseCost},
+        unit_cost=#{unitCost},
+        descr=#{descr},
+        cost_type=#{costType} where cost_id=#{costId}
+    </update>
+    <select id="findCostByCostId" resultMap="BaseCost" parameterType="integer">
+        select cost_id,name,base_duration,base_cost,unit_cost,status,cost_type from cost WHERE cost_id=#{costId};
+    </select>
+    <insert id="insertCost" parameterType="Cost">
+        insert INTO cost VALUES (#{costId},#{name},#{baseDuration},#{baseCost},#{unitCost},#{status},#{descr},#{creatime},#{startime},#{costType})
+    </insert>
+    <select id="findCostIdByName" parameterType="String" resultType="Integer">
+        SELECT cost_id FROM cost WHERE name=#{name}
+    </select>
+    <select id="findMaxId" resultType="Integer">
+        SELECT MAX(cost_id) FROM cost
+    </select>
+    <delete id="removeCost" parameterType="integer">
+        DELETE from cost WHERE cost_id=#{costId}
+    </delete>
+    <update id="updateCostStatus" parameterType="Cost">
+        UPDATE cost SET status=#{status},startime=#{startime} where cost_id=#{costId}
+    </update>
+
+
+</mapper>
